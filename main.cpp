@@ -3,7 +3,7 @@
 #include "Structure.h"
 #include "Bakutyumu.h"
 
-const char kWindowTitle[] = "1228_爆昼夢";
+const char kWindowTitle[] = "1228_爆昼夢a";
 
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
