@@ -3,7 +3,7 @@
 #include "Structure.h"
 #include "Bakutyumu.h"
 
-const char kWindowTitle[] = "1228_爆昼夢a";
+const char kWindowTitle[] = "1228_爆昼夢";
 
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
@@ -85,6 +85,38 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		// 図形の半径
 		bomb[i].radius = { 0.0f , 0.0f };
+	}
+
+
+	/*   弾   */
+
+	// 構造体
+	Bullet bullet[kBulletNum];
+
+	for (int i = 0; i < kBulletNum; i++)
+	{
+		// 復活
+		bullet[i].respawn.isRespawn = true;
+		bullet[i].respawn.timer = 120;
+
+		// 発射されているかどうか（発射フラグ）
+		bullet[i].isShot = false;
+
+		// 発射されている時間
+		bullet[i].shotTimer = 0;
+
+		// 位置
+		bullet[i].pos.world = { 0.0f , 0.0f };
+		bullet[i].pos.screen = CoordinateTransformation(bullet[i].pos.world);
+
+		// 移動速度
+		bullet[i].vel = { 0.0f , 0.0f };
+
+		// 加速度
+		bullet[i].acceleration = { 0.0f , 0.0f };
+
+		// 図形の半径
+		bullet[i].radius = { 0.0f , 0.0f };
 	}
 
 
