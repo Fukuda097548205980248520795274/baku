@@ -35,7 +35,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	player.hp.isDamage = false;
 
 	// 向ている方向
-	player.directionNo = DIRECTION_RIGHT;
+	player.directionNo = -1;
+
+	// フラグ
+	player.flug.isJump = false;
+	player.flug.isTwoStepJump = false;
+	player.flug.isBombHave = false;
 
 	// 位置
 	player.pos.world = { 0.0f , 0.0f };
@@ -46,11 +51,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	// 加速度
 	player.acceleration = { 0.0f , 0.0f };
-
-	// フラグ
-	player.flug.isJump = false;
-	player.flug.isTwoStepJump = false;
-	player.flug.isBombHave = false;
 
 	// 図形の半径
 	player.radius = { 0.0f , 0.0f };
@@ -117,6 +117,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		bullet[i].pos.world = { 0.0f , 0.0f };
 		bullet[i].pos.screen = CoordinateTransformation(bullet[i].pos.world);
 
+		// ベクトル
+		bullet[i].vec = { 0.0f , 0.0f };
+
 		// 移動速度
 		bullet[i].vel = { 0.0f , 0.0f };
 
@@ -150,9 +153,18 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		// 種類
 		enemy[i].type = -1;
 
+		// フレーム
+		enemy[i].frame = 0;
+
+		// フラグ
+		enemy[i].flug.isJump = false;
+
 		// 位置
 		enemy[i].pos.world = { 0.0f , 0.0f };
 		enemy[i].pos.screen = CoordinateTransformation(enemy[i].pos.world);
+
+		// ベクトル
+		enemy[i].vec = { 0.0f , 0.0f };
 
 		// 移動速度
 		enemy[i].vel = { 0.0f , 0.0f };
@@ -194,12 +206,18 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// フレーム
 	boss.frame = 0;
 
+	// フラグ
+	boss.flug.isJump = false;
+
 	// 種類
 	boss.type = -1;
 	
 	// 位置
 	boss.pos.world = { 0.0f , 0.0f };
 	boss.pos.screen = CoordinateTransformation(boss.pos.world);
+
+	// ベクトル
+	boss.vec = { 0.0f , 0.0f };
 
 	// 移動速度
 	boss.vel = { 0.0f , 0.0f };
