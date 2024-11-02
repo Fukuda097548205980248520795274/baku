@@ -29,6 +29,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	player.respawn.isRespawn = true;
 	player.respawn.timer = 120;
 
+	// 体力
+	player.hp.quantity = 0;
+	player.hp.damageTimer = 5;
+	player.hp.isDamage = false;
+
 	// 向ている方向
 	player.directionNo = DIRECTION_RIGHT;
 
@@ -105,6 +110,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		// 発射されている時間
 		bullet[i].shotTimer = 0;
 
+		// 種類
+		bullet[i].type = -1;
+
 		// 位置
 		bullet[i].pos.world = { 0.0f , 0.0f };
 		bullet[i].pos.screen = CoordinateTransformation(bullet[i].pos.world);
@@ -131,6 +139,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		enemy[i].respawn.isRespawn = true;
 		enemy[i].respawn.timer = 120;
 
+		// 体力
+		enemy[i].hp.quantity = 0;
+		enemy[i].hp.damageTimer = 5;
+		enemy[i].hp.isDamage = false;
+
 		// 出現しているかどうか（出現フラグ）
 		enemy[i].isArrival = false;
 
@@ -152,6 +165,53 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	}
 
 
+	/*   ボス   */
+
+	// 構造体
+	Boss boss;
+
+	// 復活
+	boss.respawn.isRespawn = true;
+	boss.respawn.timer = 120;
+
+	// ボス
+	boss.hp.quantity = 0;
+	boss.hp.damageTimer = 5;
+	boss.hp.isDamage = false;
+
+	// 出現しているかどうか（出現フラグ）
+	boss.isArrival = false;
+
+	// 攻撃しているかどうか（攻撃フラグ）
+	boss.isAttack = false;
+
+	// 攻撃のバリュエーション
+	boss.attackNo = -1;
+
+	// 向いている方向
+	boss.directionNo = -1;
+
+	// フレーム
+	boss.frame = 0;
+
+	// 種類
+	boss.type = -1;
+	
+	// 位置
+	boss.pos.world = { 0.0f , 0.0f };
+	boss.pos.screen = CoordinateTransformation(boss.pos.world);
+
+	// 移動速度
+	boss.vel = { 0.0f , 0.0f };
+
+	// 加速度
+	boss.acceleration = { 0.0f , 0.0f };
+
+	// 図形の半径
+	boss.radius = { 0.0f , 0.0f };
+
+
+
 	/*   画像   */
 
 	// 試験用図形
@@ -171,6 +231,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓更新処理ここから
 		///
 
+		/*----------------------
+		    ステージを設定する
+		----------------------*/
+
+		// ボスを出現させる
+		MakeBoss(&boss, BOSS_TYPE_STAGE_1, 980.0f, 0.0f, 32.0f, 48.0f);
+
+
 		/*--------------
 			復活処理
 		--------------*/
@@ -184,11 +252,38 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			RespawnProcess(&bomb[i].respawn);
 		}
 
+		// 弾
+		for (int i = 0; i < kBulletNum; i++)
+		{
+			RespawnProcess(&bullet[i].respawn);
+		}
+
 		// 敵
 		for (int i = 0; i < kEnemyNum; i++)
 		{
 			RespawnProcess(&enemy[i].respawn);
 		}
+
+		// ボス
+		RespawnProcess(&boss.respawn);
+
+
+		/*-----------------
+		    ダメージ処理
+		-----------------*/
+
+		// プレイヤー
+		DamageProcess(&player.hp);
+
+		// 敵
+		for (int i = 0; i < kEnemyNum; i++)
+		{
+			DamageProcess(&enemy[i].hp);
+		}
+
+		// ボス
+		DamageProcess(&boss.hp);
+
 
 		/*------------------
 			動きを設定する
@@ -197,11 +292,41 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		// プレイヤーを操作する
 		PlayerMove(&player, keys, preKeys);
 
-		// プレイヤーが爆弾を投げる
-		PlayerThrowBomb(&player, bomb, keys, preKeys);
+		// プレイヤーが爆弾を使う
+		PlayerUseBomb(&player, bomb, bullet, keys, preKeys);
 
 		// 爆弾の動き
-		BombMove(bomb);
+		BombMove(bomb , bullet);
+
+		// 弾の動き
+		BulletMove(bullet);
+
+		// ボスの動き
+		BossMove(&boss, bullet, enemy , &player);
+
+
+		/*---------------
+		    当たり判定
+		---------------*/
+
+		// 爆発 と ボス
+		for (int i = 0; i < kBulletNum; i++)
+		{
+			if (bullet[i].isShot)
+			{
+				// 爆発
+				if (bullet[i].type == BULLET_TYPE_EXPLOSION)
+				{
+					if (boss.isArrival)
+					{
+						if (HitBox(bullet[i].pos.world, bullet[i].radius, boss.pos.world, boss.radius))
+						{
+							boss.hp.isDamage = true;
+						}
+					}
+				}
+			}
+		}
 
 
 		/*-------------
@@ -217,11 +342,21 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			bomb[i].pos.screen = CoordinateTransformation(bomb[i].pos.world);
 		}
 
+		// 弾
+		for (int i = 0; i < kBulletNum; i++)
+		{
+			bullet[i].pos.screen = CoordinateTransformation(bullet[i].pos.world);
+		}
+
 		// 敵
 		for (int i = 0; i < kEnemyNum; i++)
 		{
 			enemy[i].pos.screen = CoordinateTransformation(enemy[i].pos.world);
 		}
+
+		// ボス
+		boss.pos.screen = CoordinateTransformation(boss.pos.world);
+
 
 		///
 		/// ↑更新処理ここまで
@@ -246,6 +381,23 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			}
 		}
 
+
+		/*   ボス   */
+
+		// 出現している（出現フラグがtrueである）とき
+		if (boss.isArrival)
+		{
+			if (boss.hp.isDamage == false)
+			{
+				Draw(boss, ghWhite, 0, 0, 0xFF0000FF);
+			}
+			else
+			{
+				Draw(boss, ghWhite, 0, 0, 0x000000FF);
+			}
+		}
+
+
 		/*   プレイヤー   */
 
 		// 復活している（復活フラグがtrueである）とき
@@ -254,18 +406,29 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			Draw(player, ghWhite, 0, 0, 0xFFFFFFFF);
 		}
 
+
+		/*   弾   */
+
+		for (int i = 0; i < kBulletNum; i++)
+		{
+			// 発射している（発射フラグがtrueである）とき
+			if (bullet[i].isShot)
+			{
+				Draw(bullet[i], ghWhite, 0, 0, 0xFFFFFFFF);
+			}
+		}
+
+
 		/*   爆弾   */
 
-		// 発射している（発射フラグがtrueである）とき
 		for (int i = 0; i < kBombNum; i++)
 		{
+			// 発射 or 所持している（発射 or 所持フラグがtrueである）とき
 			if (bomb[i].isShot || bomb[i].isPlayerHave)
 			{
 				Draw(bomb[i], ghWhite, 0, 0, 0xFFFFFFFF);
 			}
 		}
-
-		Novice::ScreenPrintf(0, 0, "");
 
 
 		///
