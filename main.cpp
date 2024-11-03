@@ -327,19 +327,65 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		    当たり判定
 		---------------*/
 
-		// 爆発 と ボス
+		// プレイヤー と 弾
+		if (player.respawn.isRespawn)
+		{
+			if (player.hp.isDamage == false)
+			{
+				for (int i = 0; i < kBulletNum; i++)
+				{
+					if (bullet[i].isShot)
+					{
+						// 当たったら、ダメージが入る（ダメージフラグがtrueになる）
+						if (HitBox(player.pos.world, player.radius, bullet[i].pos.world, bullet[i].radius))
+						{
+							switch (bullet[i].type)
+							{
+							case BULLET_TYPE_EXPLOSION:
+
+								// 爆発
+
+								player.hp.isDamage = true;
+
+								break;
+
+							case BULLET_TYPE_VIBRATION:
+
+								// 振動
+
+								player.hp.isDamage = true;
+
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		// 弾 と ボス
 		for (int i = 0; i < kBulletNum; i++)
 		{
 			if (bullet[i].isShot)
 			{
-				// 爆発
-				if (bullet[i].type == BULLET_TYPE_EXPLOSION)
+				if (boss.isArrival)
 				{
-					if (boss.isArrival)
+					if (boss.hp.isDamage == false)
 					{
+						// 当たったら、ダメージが入る（ダメージフラグがtrueになる）
 						if (HitBox(bullet[i].pos.world, bullet[i].radius, boss.pos.world, boss.radius))
 						{
-							boss.hp.isDamage = true;
+							switch (bullet[i].type)
+							{
+							case BULLET_TYPE_EXPLOSION:
+
+								// 爆弾
+
+								// ダメージが入る（ダメージフラグがtrueになる）
+								boss.hp.isDamage = true;
+
+								break;
+							}
 						}
 					}
 				}
@@ -405,6 +451,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		// 出現している（出現フラグがtrueである）とき
 		if (boss.isArrival)
 		{
+			// ダメージが入った（ダメージフラグがtrueである）ときに、色を変える
 			if (boss.hp.isDamage == false)
 			{
 				Draw(boss, ghWhite, 0, 0, 0xFF0000FF);
@@ -421,7 +468,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		// 復活している（復活フラグがtrueである）とき
 		if (player.respawn.isRespawn)
 		{
-			Draw(player, ghWhite, 0, 0, 0xFFFFFFFF);
+			// ダメージが入った（ダメージフラグがtrueである）ときに、色を変える
+			if (player.hp.isDamage == false)
+			{
+				Draw(player, ghWhite, 0, 0, 0xFFFFFFFF);
+			}
+			else
+			{
+				Draw(player, ghWhite, 0, 0, 0x000000FF);
+			}
 		}
 
 
